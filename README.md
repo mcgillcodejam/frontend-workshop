@@ -103,27 +103,40 @@ More: <https://postgrest.org/en/stable/references/api/tables_views.html>
 - Length limits: post body ≤ 1000 chars, comment ≤ 500, bio ≤ 280.
 - Editing or deleting sample data quietly does nothing: you get back `[]`, not an error.
 - There is no login, so anyone can edit or delete anyone else's rows. Be nice.
+- There's a profanity filter. Swear words in posts, comments, bios and products are saved as `****`. Usernames containing one are rejected with a 400 error.
 - Images: avatars come from `i.pravatar.cc` and everything else from `picsum.photos`. To add your own, use any image URL.
 
 ---
 
 ## For the organizer
 
-### Deploy to a hosted Supabase project
+### Deploy
 
-1. Create a free project at <https://supabase.com/dashboard>.
-2. Push the schema and sample data:
-   ```sh
-   npx supabase login
-   npx supabase link --project-ref <your-project-ref>
-   npx supabase db push --include-seed
-   ```
-   If you'd rather not use the CLI, paste `supabase/migrations/*.sql` and then `supabase/seed.sql` into the dashboard's **SQL Editor** and run them.
-3. Hand out the **Project URL** and the **publishable (anon) key** from *Project Settings → API*. **Never** share the secret / service_role key.
+See **[SETUP.md](SETUP.md)** for the full walkthrough: creating the project in the CodeJam Supabase org, pushing the schema, and proxying `codejam.mcgilleus.ca/workshop/api` to it via Netlify.
+
+The short version:
+
+```sh
+npx supabase login
+npx supabase link --project-ref <your-project-ref>
+npx supabase db push --include-seed
+```
+
+If you'd rather not use the CLI, paste the files in `supabase/migrations/` (in order), then `supabase/seed.sql`, into the dashboard's **SQL Editor** and run them. Hand out the URL and the **publishable** key only.
 
 ### Reset after (or during) the workshop
 
 Paste `supabase/reset.sql` into the SQL Editor. It deletes every row attendees created and restores the sample like counts.
+
+### Profanity filter
+
+The banned-word list is `private.banned_words`, which the API doesn't expose. To edit it, use Studio (Table Editor → schema `private`) or SQL:
+
+```sql
+insert into private.banned_words (word, match_prefix) values ('frick', true);
+```
+
+Matching is whole-word and ignores case. `match_prefix = true` also catches suffixed forms (`fuck` → `fucking`); leave it `false` for words that begin innocent ones (`ass` → `assignment`). Changes only apply to new writes. Leetspeak like `sh1t` isn't caught.
 
 ### Run locally (needs Docker)
 
