@@ -6,3 +6,6 @@ supabase/.temp
 .env.*
 .DS_Store
 node_modules/
+
+# Docs stay local
+*.md
